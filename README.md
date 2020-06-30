@@ -6,8 +6,9 @@ La idea es implementar un sistema de recomendación on demand por twitter. Vamos
 
 ### Links útiles
 
-[Librería oficial de twitter para Scala - twitter4s)(https://github.com/DanielaSfregola/twitter4s)
-(API rest con los endpoints para obtener las peliculas)(https://www.themoviedb.org/documentation/api)
+[Librería oficial de twitter para Scala - twitter4s](https://github.com/DanielaSfregola/twitter4s)
+
+[API rest con los endpoints para obtener las peliculas](https://www.themoviedb.org/documentation/api)
 
 
 ---
@@ -19,3 +20,4 @@ La idea es implementar un sistema de recomendación on demand por twitter. Vamos
 Para compilar: `scalac <archivo>`
 
 Para ejecutar: `scala <nombre_clase>`
+
