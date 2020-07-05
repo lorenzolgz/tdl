@@ -29,3 +29,22 @@ sudo dpkg -i sbt-0.13.9.deb
 sudo apt-get update
 sudo apt-get install sbt
 ```
+
+### Correr el esqueleto
+
+```
+Correr ./sbt (la primera vez va a tardar porque descarga todas las dependencias)
+Una vez en la consola de sbt (se ve un ">") escribir reStart
+>reStart
+```
+
+### TROUBLESHOOTING
+
+```
+Permission denied
+
+Dar permisos de ejecucion a ./sbt
+
+chmod u+x ./sbt
+chmod u+x ./sbt-dist/bin/sbt
+```
