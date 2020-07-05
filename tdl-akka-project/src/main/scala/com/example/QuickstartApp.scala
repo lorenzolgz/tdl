@@ -18,8 +18,15 @@ object Client {
     implicit val materializer = ActorMaterializer()
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext = system.dispatcher
+ 
 
-    val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = "https://api.themoviedb.org/3/search/movie?api_key=0f4c286aea338ef131e2ed9b2b522856&language=en-US&page=1&include_adult=false&query=enano"))
+    val movieQuery = "enano"
+
+    val queryString = Some("api_key=0f4c286aea338ef131e2ed9b2b522856&language=en-US&page=1&include_adult=false&query=" ++ movieQuery)
+
+    val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = "/3/search/movie", queryString = queryString)
+
+    val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = movieDBUri))
 
     responseFuture
       .onComplete {
