@@ -11,14 +11,13 @@ import spray.json.DefaultJsonProtocol._
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
 
-class buscadorPeliculas(system: ActorSystem, materializer: ActorMaterializer) extends Actor {
+class buscadorPeliculas(system: ActorSystem) extends Actor {
 
   def receive = {
     case query:String => {
 
-      implicit val Actsystem = system;
-      implicit val Actmat = materializer;
-      implicit val executionContext = system.dispatcher
+      implicit val actSystem = system; // Para el Http()
+      implicit val executionContext = system.dispatcher // Para poder manejar Future[t].onComplete
       val movieQuery = query
       val queryString = Some("api_key=0f4c286aea338ef131e2ed9b2b522856&language=en-US&page=1&include_adult=false&query=" ++ movieQuery)
       val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = "/3/search/movie", queryString = queryString)
@@ -42,9 +41,7 @@ object Client {
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
-    // needed for the future flatMap/onComplete in the end
-    implicit val executionContext = system.dispatcher
-    val buscador = system.actorOf(Props(classOf[buscadorPeliculas], system, materializer), "buscador")
+    val buscador = system.actorOf(Props(classOf[buscadorPeliculas], system), "buscador")
     buscador ! "robot"
     buscador ! "alien"
   }
