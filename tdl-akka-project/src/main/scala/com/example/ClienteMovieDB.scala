@@ -8,8 +8,9 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.{JsValue, JsonFormat, _}
 import DefaultJsonProtocol._
 
-import scala.concurrent.{Future, Await}
-import scala.util.{ Failure, Success }
+import scala.concurrent.{Future, Await, ExecutionContext}
+import ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
 /*  
@@ -59,7 +60,6 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
     case query:String => {
 
       implicit val actSystem = system; // Para el Http()
-      implicit val executionContext = system.dispatcher // Para poder manejar Future[t].onComplete
 
       val queryString = Some(s"api_key=${apiKey}&language=es-LA&page=1&include_adult=false&query=${query}")
       val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = "/3/search/movie", queryString = queryString)
@@ -90,7 +90,6 @@ class MovieRecommender(system: ActorSystem, val apiKey: String, var formatter: A
     case movieID:String => {
 
       implicit val actSystem = system; // Para el Http()
-      implicit val executionContext = system.dispatcher // Para poder manejar Future[t].onComplete
 
       val path = "/3/movie/%s/recommendations".format(movieID)
 
