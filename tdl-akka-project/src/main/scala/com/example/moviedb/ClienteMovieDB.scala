@@ -1,3 +1,5 @@
+package moviedb
+
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
@@ -12,6 +14,7 @@ import scala.concurrent.{Future, Await, ExecutionContext}
 import ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 import scala.concurrent.duration._
+
 
 /*  
  *  Para parsear un JSON en scala la forma más fácil de hacerlo es 
@@ -53,6 +56,7 @@ class MovieDataFormatter extends Actor {
 // TODO: Refactorizar a un RequestsDispatcher que maneje los requests a la API, estos actores solo deberían 
 //       setear el endpoint y el método junto con los parámetros
 //
+
 
 class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef) extends Actor {
 
@@ -116,18 +120,3 @@ class MovieRecommender(system: ActorSystem, val apiKey: String, var formatter: A
 }
 
 
-object Client {
-  def main(args: Array[String]): Unit = {
-
-    val system = ActorSystem()
-    val APIKey = "0f4c286aea338ef131e2ed9b2b522856"
-
-    val dataFormatter = system.actorOf(Props[MovieDataFormatter], "formatter")
-    val movieFinder = system.actorOf(Props(classOf[MovieFinder], system, APIKey, dataFormatter), "finder")
-    val recommender = system.actorOf(Props(classOf[MovieRecommender], system, APIKey, dataFormatter), "recommender")
-
-    movieFinder ! "robot"
-    recommender ! "2048"
-//    movieFinder ! "alien"
-  }
-}
