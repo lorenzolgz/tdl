@@ -6,6 +6,8 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.pattern.{ ask, pipe }
+import akka.util.Timeout
 
 import spray.json.{JsValue, JsonFormat, _}
 import DefaultJsonProtocol._
@@ -35,19 +37,23 @@ object MovieDBProtocol extends DefaultJsonProtocol {
 
 class MovieDataFormatter extends Actor {
   import MovieDBProtocol._
+  implicit val timeout: Timeout = 5.seconds
 
   def receive = {
     case movieData: String => {
 
       var page = movieData.parseJson.convertTo[Page[Movie]]
 
-      println(s"Página: ${page.page}")
-      println("--------------------------------------")
+      var r: String = ""
+      r = r + s"Página: ${page.page}\n"
+      r = r + "--------------------------------------\n"
 
       for(movie <- page.results) {
-        println(s"--- ID: ${movie.id} | Título: ${movie.title} | Puntuación: ${movie.vote_average}")
-        println("--------------------------------------")
+        r = r + s"--- ID: ${movie.id} | Título: ${movie.title} | Puntuación: ${movie.vote_average}\n"
+        r = r + "--------------------------------------\n"
       }
+      
+      sender ! r
 
     }
   }
@@ -55,7 +61,6 @@ class MovieDataFormatter extends Actor {
 
 // TODO: Refactorizar a un RequestsDispatcher que maneje los requests a la API, estos actores solo deberían 
 //       setear el endpoint y el método junto con los parámetros
-//
 
 
 class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef) extends Actor {
@@ -64,6 +69,7 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
     case query:String => {
 
       implicit val actSystem = system; // Para el Http()
+      implicit val timeout: Timeout = 5.seconds
 
       val queryString = Some(s"api_key=${apiKey}&language=es-LA&page=1&include_adult=false&query=${query}")
       val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = "/3/search/movie", queryString = queryString)
@@ -76,13 +82,24 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
 
           val stringFuture: Future[String] = Unmarshal(res).to[String]
 
-          formatter ! Await.result(stringFuture, 5 seconds) 
+          val formattedMovies: Future[String] = ask(formatter, Await.result(stringFuture, 5 seconds)).mapTo[String]
+
+          formattedMovies onComplete {
+            case Success(value) => {
+              println(s"recibido, enviando $value a $sender")
+              Future {
+                value
+              }.pipeTo(sender)
+            }
+            case Failure(t) => println(s"Ocurrio un error esperando respuesta de $formatter")
+
+          }
 
         }
         case Failure(_)   => sys.error("Ocurrio un error al esperar la respuesta de la API")
       }
     }
-    case _ => println("Buscador recibio una query que no es del tipo string<")
+    case _ => println(s"$self recibio una query que no es del tipo string<")
   }
 
 }
