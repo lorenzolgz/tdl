@@ -20,7 +20,7 @@ class WebServer(val formatter: ActorRef, val finder: ActorRef, val recommender: 
     concat(
       pathSingleSlash {
         get {
-          val movieResults: Future[String] = ask(finder, 2048).mapTo[String] 
+          val movieResults: Future[String] = ask(finder, "2048").mapTo[String] 
 
           // FIXME: esto por algún motivo nunca llega y se termina enviando a deadLetters, el buzón default para los mensajes
           //        entre actores que nunca llegaron
