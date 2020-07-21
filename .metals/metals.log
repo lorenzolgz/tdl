@@ -332,3 +332,15 @@ Caused by: java.nio.file.NoSuchFileException: /home/ailen-magali/Escritorio/tdl/
 WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/main.scala
 WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/WebServer.scala
 WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/moviedb/ClienteMovieDB.scala
+INFO  time: initialize in 2.87s
+WARN  no build tool detected in workspace '/home/ailen-magali/Escritorio/tdl'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/moviedb/ClienteMovieDB.scala
+INFO  no build target: using presentation compiler with only scala-library
+WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/main.scala
+WARN  no build tool detected in workspace '/home/ailen-magali/Escritorio/tdl'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+jul 21, 2020 7:30:10 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+ADVERTENCIA: Unmatched cancel notification for request id 113
+WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/WebServer.scala
+WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/moviedb/ClienteMovieDB.scala
+WARN  no build target: /home/ailen-magali/Escritorio/tdl/tdl-akka-project/src/main/scala/com/example/main.scala
+WARN  no build target: 

@@ -9,8 +9,8 @@ object RecomendationService {
     val system = ActorSystem()
     val APIKey = "0f4c286aea338ef131e2ed9b2b522856"
 
-    val dataFormatter = system.actorOf(Props[MovieDataFormatter], "formatter")
     val printer = system.actorOf(Props(classOf[Printer]), "printer")
+    val dataFormatter = system.actorOf(Props(classOf[MovieDataFormatter], printer), "formatter")
     val movieFinder = system.actorOf(Props(classOf[MovieFinder], system, APIKey, dataFormatter, printer), "finder")
     val recommender = system.actorOf(Props(classOf[MovieRecommender], system, APIKey, dataFormatter), "recommender")
 

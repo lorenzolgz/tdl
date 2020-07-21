@@ -35,7 +35,7 @@ object MovieDBProtocol extends DefaultJsonProtocol {
   implicit def pageFormat[Movie: JsonFormat] = jsonFormat2(Page.apply[Movie])
 }
 
-class MovieDataFormatter extends Actor {
+class MovieDataFormatter(var printer: ActorRef) extends Actor {
   import MovieDBProtocol._
   implicit val timeout: Timeout = 5.seconds
 
@@ -53,7 +53,7 @@ class MovieDataFormatter extends Actor {
         r = r + "--------------------------------------\n"
       }
 
-      sender ! r
+      printer ! r
 
     }
   }
@@ -129,7 +129,7 @@ class MovieRecommender(system: ActorSystem, val apiKey: String, var formatter: A
 
           val stringFuture: Future[String] = Unmarshal(res).to[String]
 
-          println(s"Recommendations for ID: ${movieID}")
+          //println(s"Recommendations for ID: ${movieID}")
           formatter ! Await.result(stringFuture, 5 seconds)
 
         }
