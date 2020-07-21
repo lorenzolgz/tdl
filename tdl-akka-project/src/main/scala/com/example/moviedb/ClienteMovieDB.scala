@@ -18,14 +18,14 @@ import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
 
-/*  
- *  Para parsear un JSON en scala la forma más fácil de hacerlo es 
+/*
+ *  Para parsear un JSON en scala la forma más fácil de hacerlo es
  *  armar case clases que le peguen a cada campo (no hace falta utilizarlos todos)
  *  en este caso creamos uno para la página en sí (que contiene el número y una lista
  *  de películas); y otro para la película (que contiene el título, autor, etc.)
- *  Además hay que crear un protocolo de unmarshalling para poder utilizar estas 
+ *  Además hay que crear un protocolo de unmarshalling para poder utilizar estas
  *  cases clases en este caso es MovieDBProtocol
- */ 
+ */
 
 case class Movie(title: String, vote_average: Int, id: Int, overview: String)
 case class Page[Movie](page: Int, results: List[Movie])
@@ -52,18 +52,18 @@ class MovieDataFormatter extends Actor {
         r = r + s"--- ID: ${movie.id} | Título: ${movie.title} | Puntuación: ${movie.vote_average}\n"
         r = r + "--------------------------------------\n"
       }
-      
+
       sender ! r
 
     }
   }
 }
 
-// TODO: Refactorizar a un RequestsDispatcher que maneje los requests a la API, estos actores solo deberían 
+// TODO: Refactorizar a un RequestsDispatcher que maneje los requests a la API, estos actores solo deberían
 //       setear el endpoint y el método junto con los parámetros
 
 
-class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef) extends Actor {
+class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef, var printer: ActorRef) extends Actor {
 
   def receive = {
     case query:String => {
@@ -90,6 +90,10 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
               Future {
                 value
               }.pipeTo(sender)
+
+              //Se lo envío al Printer
+              printer ! value
+
             }
             case Failure(t) => println(s"Ocurrio un error esperando respuesta de $formatter")
 
@@ -126,7 +130,7 @@ class MovieRecommender(system: ActorSystem, val apiKey: String, var formatter: A
           val stringFuture: Future[String] = Unmarshal(res).to[String]
 
           println(s"Recommendations for ID: ${movieID}")
-          formatter ! Await.result(stringFuture, 5 seconds) 
+          formatter ! Await.result(stringFuture, 5 seconds)
 
         }
         case Failure(_)   => sys.error("Ocurrio un error al esperar la respuesta de la API")
@@ -137,3 +141,14 @@ class MovieRecommender(system: ActorSystem, val apiKey: String, var formatter: A
 }
 
 
+//Printer le envía la película recomendada al usuario de Twitter
+
+class Printer extends Actor {
+
+  def receive = {
+    case film:String => {
+      println(s"Esta es la película que te recomendamos: ${film}")
+    }
+  }
+
+}
