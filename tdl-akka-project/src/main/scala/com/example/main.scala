@@ -13,10 +13,18 @@ object RecomendationService {
   def main(args: Array[String]): Unit = {
 
     val system = ActorSystem()
+    // OJO: esta es para MovieDB
     val APIKey = "0f4c286aea338ef131e2ed9b2b522856"
 
-    val consumerToken = ConsumerToken(key = "yAGiXFMZqX8cuHSxK2DTZPSFl", secret = "YVcTBOY6YXGcUamgNjp8Ypajcx9SOiXiYWRpLlyf4emltS624K")
-    val accessToken = AccessToken(key = "1102383263400775680-fVPz3JX0hSc1ELeRHwljKABcfIDOIq", secret = "8voFZB0WWQU6Ix8g6eWpTjhrx6qY4LElBOVkocoiy6Qce")  
+    // Estas son para twitter
+    val CONSUMER_KEY = "Smqf5X2hPt5brcKfG2MipHXfx"
+    val CONSUMER_SECRET = "nngdpENb7QTXQnyJ0gleth8bYTGQGtsa6zBKDb9J7cZfHsaJR0"
+
+    val ACCESS_KEY = "1285759165869236226-XAgIZcuzvkjuLn9pmQ7AZJyCWmKVx0"
+    val ACCESS_TOKEN = "snq5qU19DUW5xOfYB891YuUI6AA2FZxeyIGj5Iq9PvXa0"
+
+    val consumerToken = ConsumerToken(key = CONSUMER_KEY, secret = CONSUMER_SECRET)
+    val accessToken = AccessToken(key = ACCESS_KEY, secret = ACCESS_TOKEN)  
 
     val restClient = TwitterRestClient(consumerToken, accessToken)
     val streamingClient = TwitterStreamingClient(consumerToken, accessToken)
@@ -24,7 +32,7 @@ object RecomendationService {
     var myfuture: Future[Tweet] = restClient.createTweet("Enanos")
     myfuture.onComplete {
       case Success(r) => println("OK")
-      case Failure(r) => println("FAILED")
+      case Failure(r) => println(r)
     }
 
     for (msg <- restClient.eventsList()){
