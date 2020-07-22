@@ -3,7 +3,7 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import akka.stream.ActorMaterializer
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.TwitterStreamingClient
-import com.danielasfregola.twitter4s.entities.{Tweet, AccessToken, ConsumerToken}
+import com.danielasfregola.twitter4s.entities.{Tweet, AccessToken, ConsumerToken, Event}
 import scala.concurrent.{Future, ExecutionContext, Await}
 import scala.util.{Failure, Success}
 
@@ -24,25 +24,26 @@ object RecomendationService {
     val ACCESS_TOKEN = "snq5qU19DUW5xOfYB891YuUI6AA2FZxeyIGj5Iq9PvXa0"
 
     val consumerToken = ConsumerToken(key = CONSUMER_KEY, secret = CONSUMER_SECRET)
-    val accessToken = AccessToken(key = ACCESS_KEY, secret = ACCESS_TOKEN)  
+    val accessToken = AccessToken(key = ACCESS_KEY, secret = ACCESS_TOKEN)
 
     val restClient = TwitterRestClient(consumerToken, accessToken)
     val streamingClient = TwitterStreamingClient(consumerToken, accessToken)
 
-    var myfuture: Future[Tweet] = restClient.createTweet("Enanos")
-    myfuture.onComplete {
-      case Success(r) => println("OK")
-      case Failure(r) => println(r)
-    }
+    //var myfuture: Future[Tweet] = restClient.createTweet("Enanos")
+    //myfuture.onComplete {
+      //case Success(r) => println("OK")
+      //case Failure(r) => println(r)
+    //}
 
+    //Manejo por md en vez de por tweets (más privado)
     for (msg <- restClient.eventsList()){
       println(s"El mensaje fue: ${msg}")
     }
 
-    var anotherFuture: Future[Tweet] = restClient.createDirectMessageAsTweet("Testing", "@AiiiluMG")
+    var anotherFuture: Future[Event] = restClient.createDirectMessageEvent(110791177, "Hola Ailu")
     anotherFuture.onComplete {
-      case Success(r) => println("enviado msg")
-      case Failure(r) => println("fallo envio de msg")
+      case Success(r) => println("Mensaje enviado")
+      case Failure(r) => println("Falló envío de mensaje")
     }
 
 
