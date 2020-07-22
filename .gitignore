@@ -1,3 +1,4 @@
-./tdl-akka-project/project/*
-./tdl-akka-project/target/*
-.idea/*
+tdl-akka-project/project
+tdl-akka-project/target
+.idea
+.metals
