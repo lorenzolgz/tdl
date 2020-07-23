@@ -3,7 +3,7 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import akka.stream.ActorMaterializer
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.TwitterStreamingClient
-import com.danielasfregola.twitter4s.entities.{Tweet, AccessToken, ConsumerToken, Event}
+import com.danielasfregola.twitter4s.entities.{Tweet, AccessToken, ConsumerToken, Event, DirectMessageEventList}
 import scala.concurrent.{Future, ExecutionContext, Await}
 import scala.util.{Failure, Success}
 
@@ -29,25 +29,28 @@ object RecomendationService {
     val restClient = TwitterRestClient(consumerToken, accessToken)
     val streamingClient = TwitterStreamingClient(consumerToken, accessToken)
 
-    //var myfuture: Future[Tweet] = restClient.createTweet("Enanos")
-    //myfuture.onComplete {
-      //case Success(r) => println("OK")
-      //case Failure(r) => println(r)
-    //}
 
-    //Manejo por md en vez de por tweets (más privado)
-    for (msg <- restClient.eventsList()){
-      println(s"El mensaje fue: ${msg}")
+    //Recibe las mensiones
+    var myfuture = restClient.mentionsTimeline()
+    myfuture.onComplete {
+      case Success(r) =>  for (md <- myfuture){
+                            println(s"El mensaje fue: ${md}")
+                          }
+      case Failure(r) => println(r)
     }
 
-    var anotherFuture: Future[Event] = restClient.createDirectMessageEvent(110791177, "Hola Ailu")
-    anotherFuture.onComplete {
+    //Envía tweet
+    val user = "@AiiiluMG"
+    val tweet = s"Estas son las películas que te recomiendo: "
+
+    var mdToSend = restClient.createDirectMessageAsTweet(tweet, user)
+    mdToSend.onComplete {
       case Success(r) => println("Mensaje enviado")
       case Failure(r) => println("Falló envío de mensaje")
     }
 
-
     val printer = system.actorOf(Props(classOf[Printer]), "printer")
+    //val twitter = system.actorOf(Props(classOf[SenderMDTwitter]), "senderMDTwitter")
     val dataFormatter = system.actorOf(Props(classOf[MovieDataFormatter], printer), "formatter")
     val movieFinder = system.actorOf(Props(classOf[MovieFinder], system, APIKey, dataFormatter, printer), "finder")
     val recommender = system.actorOf(Props(classOf[MovieRecommender], system, APIKey, dataFormatter), "recommender")
