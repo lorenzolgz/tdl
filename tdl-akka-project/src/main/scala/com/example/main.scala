@@ -38,16 +38,16 @@ object RecomendationService {
                           }
       case Failure(r) => println(r)
     }
-
-    //Envía tweet
+    //Envía tweet. Dato curioso: este método no permite hacer tweets ya realizados
     val user = "@AiiiluMG"
     val tweet = s"Estas son las películas que te recomiendo: "
 
     var mdToSend = restClient.createDirectMessageAsTweet(tweet, user)
     mdToSend.onComplete {
       case Success(r) => println("Mensaje enviado")
-      case Failure(r) => println("Falló envío de mensaje")
+      case Failure(r) => println(r)
     }
+
 
     val printer = system.actorOf(Props(classOf[Printer]), "printer")
     //val twitter = system.actorOf(Props(classOf[SenderMDTwitter]), "senderMDTwitter")
@@ -57,8 +57,46 @@ object RecomendationService {
 
 
     var server = new WebServer(dataFormatter, movieFinder, recommender, printer)
-
     server.startServer("localhost", 8080)
 
+    //Entrada
+    class EntryManager extends Actor{
+
+      abstract class Client
+      case class Twitter(user: String) extends Client
+      case class Web() extends Client
+      abstract class Request
+      case class Recommendation(request: String, respondTo: Client) extends Request
+      case class FindMovie(request: String, respondTo: Client) extends Request
+
+      def receive = {
+        case Recommendation(req, respondTo) => {
+          respondTo match {
+            case Twitter(user) => {
+            //llamar al movierecommender mandandole: req, user
+            }
+            case Web() => {
+
+            }
+            case _ => {}
+          }
+        }
+        case FindMovie(req, respondTo) => {
+          respondTo match {
+            case Twitter(user) => {
+            //llamar al moviefinder mandandole: req, user
+            }
+            case Web() => {
+
+            }
+            case _ => {}
+          }
+        }
+        case _ => {}
+      }
+    }
+
   }
+
+
 }
