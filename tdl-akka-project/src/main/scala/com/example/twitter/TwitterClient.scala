@@ -11,11 +11,12 @@ import com.danielasfregola.twitter4s.entities.streaming.{StreamingMessage}
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
+import commons.{EntryManager, Request, MyTweet, RecommendationRequest}
 
 case class GetMentions()
 case class WakeUp()
 
-class TwitterClient extends Actor {
+class TwitterClient(val entryManager: ActorRef) extends Actor {
 
     val CONSUMER_KEY = "Smqf5X2hPt5brcKfG2MipHXfx"
     val CONSUMER_SECRET = "nngdpENb7QTXQnyJ0gleth8bYTGQGtsa6zBKDb9J7cZfHsaJR0"
@@ -59,11 +60,18 @@ class TwitterClient extends Actor {
         val emoji = "\uD83D\uDE01"
         def printTweetText: PartialFunction[StreamingMessage, Unit] = {
           case tweet: Tweet => {
-            println(tweet.text)
+            println(s"Procesando: ${tweet.text}")
+            var hashtags = tweet.entities.map(_.hashtags).getOrElse(List.empty)
+            var hashtag = ""
+            if(hashtags.size > 0){
+              hashtag = hashtags(0).text
+            }
+            println(s"Hashtag: ${hashtag}")
             var tweet_id: Long = tweet.id
             var user = tweet.user.get
-            println(s"Repondiendo a ${tweet_id} usuario: ${user.screen_name}")
-            restClient.createTweet(status=s"Perdón @${user.screen_name} no hay películas para recomendarte... ${emoji}${emoji}", in_reply_to_status_id=Option(tweet_id))
+            var name = user.screen_name
+            println(s"Repondiendo la mencion (${tweet_id}) del usuario ${user.screen_name}")
+            entryManager ! new RecommendationRequest(hashtag, MyTweet(tweet_id, name.toString()))
           }
 
           case _ => println("se recibio otra cosa")

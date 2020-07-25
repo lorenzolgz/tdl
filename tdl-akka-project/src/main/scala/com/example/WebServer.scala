@@ -12,7 +12,7 @@ import scala.util.{Failure, Success}
 import ExecutionContext.Implicits.global
 
 
-class WebServer(val formatter: ActorRef, val finder: ActorRef, val recommender: ActorRef, val printer: ActorRef) extends HttpApp {
+class WebServer(val formatter: ActorRef, val finder: ActorRef, val recommender: ActorRef) extends HttpApp {
 
   implicit val timeout: Timeout = 5.seconds
 

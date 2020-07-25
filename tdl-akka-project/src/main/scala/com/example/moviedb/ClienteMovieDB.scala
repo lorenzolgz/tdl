@@ -9,6 +9,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.pattern.{ ask, pipe }
 import akka.util.Timeout
 
+import commons.{OutputManager, RecommendationRequest, FindMovieRequest, Client, Recommendation}
 import spray.json.{JsValue, JsonFormat, _}
 import DefaultJsonProtocol._
 
@@ -27,6 +28,7 @@ import scala.concurrent.duration._
  *  cases clases en este caso es MovieDBProtocol
  */
 
+
 case class Movie(title: String, vote_average: Int, id: Int, overview: String)
 case class Page[Movie](page: Int, results: List[Movie])
 
@@ -35,7 +37,7 @@ object MovieDBProtocol extends DefaultJsonProtocol {
   implicit def pageFormat[Movie: JsonFormat] = jsonFormat2(Page.apply[Movie])
 }
 
-class MovieDataFormatter(var printer: ActorRef) extends Actor {
+class MovieDataFormatter() extends Actor {
   import MovieDBProtocol._
   implicit val timeout: Timeout = 5.seconds
 
@@ -53,7 +55,32 @@ class MovieDataFormatter(var printer: ActorRef) extends Actor {
         r = r + "--------------------------------------\n"
       }
 
-      printer ! r
+      sender ! r
+
+    }
+  }
+}
+
+class SimpleMovieDataFormatter() extends Actor {
+  import MovieDBProtocol._
+  implicit val timeout: Timeout = 5.seconds
+
+  def receive = {
+    case movieData: String => {
+
+      var page = movieData.parseJson.convertTo[Page[Movie]]
+
+      var r: String = ""
+      var it = 0
+      val emoji = "\uD83C\uDFAC"
+
+      while(it <= 2) {
+        var movie = page.results(it)
+        r = r + s"${emoji} \'${movie.title}\' | Score: ${movie.vote_average}\n"
+        it += 1
+      }
+
+      sender ! r
 
     }
   }
@@ -63,22 +90,23 @@ class MovieDataFormatter(var printer: ActorRef) extends Actor {
 //       setear el endpoint y el método junto con los parámetros
 
 
-class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef, var printer: ActorRef) extends Actor {
+class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef) extends Actor {
+  var outputManager = system.actorOf(Props(classOf[OutputManager]), "outputManager")
 
   def receive = {
-    case query:String => {
+    case FindMovieRequest(request: String, respondTo: Client) => {
 
       implicit val actSystem = system; // Para el Http()
       implicit val timeout: Timeout = 5.seconds
 
-      val queryString = Some(s"api_key=${apiKey}&language=es-LA&page=1&include_adult=false&query=${query}")
+      val queryString = Some(s"api_key=${apiKey}&language=es-LA&page=1&include_adult=false&query=${request}")
       val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = "/3/search/movie", queryString = queryString)
       val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = movieDBUri))
 
       responseFuture.onComplete {
 
         case Success(res) => {
-          println(s"Response for key=${query} with code=${res.status.intValue()}")
+          println(s"Response for key=${request} with code=${res.status.intValue()}")
 
           val stringFuture: Future[String] = Unmarshal(res).to[String]
 
@@ -86,13 +114,13 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
 
           formattedMovies onComplete {
             case Success(value) => {
-              println(s"recibido, enviando $value a $sender")
-              Future {
-                value
-              }.pipeTo(sender)
+              //println(s"recibido, enviando $value")
+              //Future {
+              //  value
+              //}.pipeTo(sender)
 
-              //Se lo envío al Printer
-              printer ! value
+              //Se lo envío al outputManager
+              outputManager ! Recommendation(value,respondTo)
 
             }
             case Failure(t) => println(s"Ocurrio un error esperando respuesta de $formatter")
@@ -138,17 +166,4 @@ class MovieRecommender(system: ActorSystem, val apiKey: String, var formatter: A
     }
     case _ => println("Buscador recibio una query que no es del tipo string<")
   }
-}
-
-
-//Printer le envía la película recomendada al usuario de Twitter
-
-class Printer extends Actor {
-
-  def receive = {
-    case film:String => {
-      println(s"Esta es la película que te recomendamos: ${film}")
-    }
-  }
-
 }
