@@ -2,7 +2,7 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import akka.stream.ActorMaterializer
 
 import moviedb.{MovieDataFormatter, MovieFinder, MovieRecommender, Printer}
-import twitter.{TwitterClient, GetMentions}
+import twitter.{TwitterClient, GetMentions, WakeUp}
 
 
 object RecomendationService {
@@ -19,7 +19,7 @@ object RecomendationService {
     val recommender = system.actorOf(Props(classOf[MovieRecommender], system, APIKey, dataFormatter), "recommender")
     val twitterClient = system.actorOf(Props(classOf[TwitterClient]), "twitterClient")
 
-    twitterClient ! GetMentions()
+    twitterClient ! WakeUp()
 
     var server = new WebServer(dataFormatter, movieFinder, recommender, printer)
     server.startServer("localhost", 8080)

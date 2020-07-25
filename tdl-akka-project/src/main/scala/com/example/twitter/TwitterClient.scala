@@ -7,11 +7,13 @@ import ExecutionContext.Implicits.global
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.TwitterStreamingClient
 import com.danielasfregola.twitter4s.entities.{Tweet, AccessToken, ConsumerToken, Event, DirectMessageEventList}
+import com.danielasfregola.twitter4s.entities.streaming.{StreamingMessage}
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
 
 case class GetMentions()
+case class WakeUp()
 
 class TwitterClient extends Actor {
 
@@ -24,6 +26,7 @@ class TwitterClient extends Actor {
     val consumerToken = ConsumerToken(key = CONSUMER_KEY, secret = CONSUMER_SECRET)
     val accessToken = AccessToken(key = ACCESS_KEY, secret = ACCESS_TOKEN)
 
+    val streamingClient = TwitterStreamingClient(consumerToken, accessToken)
     val restClient = TwitterRestClient(consumerToken, accessToken)
     //La idea es que haya registro de los tweets ya mandados, pero esto se ejecuta cada vez que se hace reStart
     var oldMentions:List[_] = List()
@@ -50,6 +53,23 @@ class TwitterClient extends Actor {
 
           case Failure(e) => println(e)
         }
+      }
+
+      case WakeUp() => {
+        val emoji = "\uD83D\uDE01"
+        def printTweetText: PartialFunction[StreamingMessage, Unit] = {
+          case tweet: Tweet => {
+            println(tweet.text)
+            var tweet_id: Long = tweet.id
+            var user = tweet.user.get
+            println(s"Repondiendo a ${tweet_id} usuario: ${user.screen_name}")
+            restClient.createTweet(status=s"Perdón @${user.screen_name} no hay películas para recomendarte... ${emoji}${emoji}", in_reply_to_status_id=Option(tweet_id))
+          }
+
+          case _ => println("se recibio otra cosa")
+        }
+        streamingClient.filterStatuses(tracks=Seq("MoviesRecommen1"))(printTweetText)
+
       }
       case _ => println("No recibi nada")
 
