@@ -38,6 +38,22 @@ Una vez en la consola de sbt (se ve un ">") escribir reStart
 >reStart
 ```
 
+### Hacer una request
+
+***TWITTER***
+- Mencionar a @MovieRecommen1 en un tuit con al menos un hashtag para que haga la busqueda, como resultado se verá una respuesta de 3 películas que han matcheado.
+
+```
+EJEMPLO: "@MovieRecommen1 Recomendame pelis de #zombies"
+```
+
+```
+root Response for key=zombies with code=200
+root 🎬 'Zombies! Zombies! Zombies!' | Score: 3
+root 🎬 'Zombies paletos' | Score: 4
+root 🎬 'Orgullo + Prejuicio + Zombis' | Score: 5
+```
+
 ### TROUBLESHOOTING
 
 ```
