@@ -13,33 +13,13 @@ class EntryManager(val RecomendationService: ActorRef, val SearchService: ActorR
 
   def receive = {
     case RecommendationRequest(req, respondTo) => {
-      /* Entiendo que matchear a quién responder no haría falta
-       * ya que no nos importaría quién sea, en tanto hagamos respondTo ! response
-       */ 
-      respondTo match {
-        case Twitter(user) => {
-        //llamar al movierecommender mandandole: req, user
-        }
-        case Web() => {
-
-        }
-        case _ => {}
-      }
+      
     }
     case FindMovieRequest(req, respondTo) => {
-      respondTo match {
-        case Twitter(user) => {
-        //llamar al moviefinder mandandole: req, user
-        }
-        case Web() => {
 
-        }
-        case _ => {}
-      }
     }
-    case _ => {}
+    case _ => {
+      println("EntryManager recibió algo inválido")
+    }
   }
 }
-
-
-

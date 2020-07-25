@@ -25,22 +25,33 @@ class TwitterClient extends Actor {
     val accessToken = AccessToken(key = ACCESS_KEY, secret = ACCESS_TOKEN)
 
     val restClient = TwitterRestClient(consumerToken, accessToken)
+    //La idea es que haya registro de los tweets ya mandados, pero esto se ejecuta cada vez que se hace reStart
+    var oldMentions:List[_] = List()
 
-    def receive = { 
+    //val entryManager = system.actorOf(Props(classOf[EntryManager]), "entryManager")
+
+    def receive = {
       case GetMentions() => {
+        var newMentions:List[_] = List()
         var mentions = restClient.mentionsTimeline()
         mentions.onComplete {
-          case Success(ratedData) =>  {
+          case Success(ratedData) => {
             for (tweetMention <- ratedData.data) {
               var user = tweetMention.user.get
-              println(s"Te mencionó el usuario ${user.screen_name} con el mensaje '${tweetMention.text}'")
+              var mentionid = tweetMention.id
+              if(oldMentions.contains(tweetMention) == false){
+                println(s"Te mencionó el usuario ${user.screen_name} con el mensaje '${tweetMention.text}'")
+                newMentions :: List(tweetMention)
+              }
             }
+            //entryManager ! newMentions
+            oldMentions :: newMentions
           }
 
           case Failure(e) => println(e)
         }
       }
-      case _ => println("No recibi nada") 
+      case _ => println("No recibi nada")
 
     }
 
