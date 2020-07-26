@@ -13,6 +13,7 @@ case class ListenToMentions()
 class TwitterClient(val entryManager: ActorRef) extends Actor {
 
     val streamingClient = TwitterStreamingClient()
+    val usuario = "buscamePelis"
 
     def receive = {
       case ListenToMentions => {
@@ -34,7 +35,7 @@ class TwitterClient(val entryManager: ActorRef) extends Actor {
 
           case _ => println("Se recibió otra cosa")
         }
-        streamingClient.filterStatuses(tracks=Seq("MoviesRecommen1"))(processTweet)
+        streamingClient.filterStatuses(tracks=Seq(usuario))(processTweet)
 
       }
       case _ => println("No recibi nada")
