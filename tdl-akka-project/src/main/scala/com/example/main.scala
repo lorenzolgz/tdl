@@ -2,7 +2,7 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import akka.stream.ActorMaterializer
 
 import moviedb.{MovieDataFormatter, MovieFinder, MovieRecommender, SimpleMovieDataFormatter}
-import twitter.{TwitterClient, GetMentions, WakeUp}
+import twitter.{TwitterClient, WakeUp}
 import commons.{EntryManager, OutputManager}
 
 
