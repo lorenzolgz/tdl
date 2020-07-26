@@ -2,29 +2,22 @@ package commons
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import akka.stream.ActorMaterializer
+
 import com.danielasfregola.twitter4s.TwitterRestClient
-import com.danielasfregola.twitter4s.entities.{Tweet, AccessToken, ConsumerToken, Event, DirectMessageEventList}
+import com.danielasfregola.twitter4s.entities.{Tweet}
+
 
 case class Recommendation(recom: String, respondTo: Client)
 
 class OutputManager extends Actor {
 
   val system = ActorSystem()
-
-  var CONSUMER_KEY = "Smqf5X2hPt5brcKfG2MipHXfx"
-  var CONSUMER_SECRET = "nngdpENb7QTXQnyJ0gleth8bYTGQGtsa6zBKDb9J7cZfHsaJR0"
-
-  var ACCESS_KEY = "1285759165869236226-XAgIZcuzvkjuLn9pmQ7AZJyCWmKVx0"
-  var ACCESS_TOKEN = "snq5qU19DUW5xOfYB891YuUI6AA2FZxeyIGj5Iq9PvXa0"
-
-  val consumerToken = ConsumerToken(key = CONSUMER_KEY, secret = CONSUMER_SECRET)
-  val accessToken = AccessToken(key = ACCESS_KEY, secret = ACCESS_TOKEN)
-  val restClient = TwitterRestClient(consumerToken, accessToken)
   val printer = system.actorOf(Props(classOf[Printer]), "printer")
+
+  val restClient = TwitterRestClient()
 
   case class Twitter(restClient: TwitterRestClient) extends Client
   case class Web() extends Client
-
 
   def receive = {
     case Recommendation(recom, MyTweet(mention, user)) => {
