@@ -16,7 +16,7 @@ class TwitterClient(val entryManager: ActorRef) extends Actor {
 
     def receive = {
       case ListenToMentions => {
-        def printTweetText: PartialFunction[StreamingMessage, Unit] = {
+        def processTweet: PartialFunction[StreamingMessage, Unit] = {
 
           case tweet: Tweet => {
 
@@ -34,7 +34,7 @@ class TwitterClient(val entryManager: ActorRef) extends Actor {
 
           case _ => println("Se recibió otra cosa")
         }
-        streamingClient.filterStatuses(tracks=Seq("MoviesRecommen1"))(printTweetText)
+        streamingClient.filterStatuses(tracks=Seq("MoviesRecommen1"))(processTweet)
 
       }
       case _ => println("No recibi nada")
