@@ -6,7 +6,6 @@ import akka.stream.ActorMaterializer
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.{Tweet}
 
-
 case class Recommendation(recom: String, respondTo: Client)
 
 class OutputManager extends Actor {
@@ -15,9 +14,6 @@ class OutputManager extends Actor {
   val printer = system.actorOf(Props(classOf[Printer]), "printer")
 
   val restClient = TwitterRestClient()
-
-  case class Twitter(restClient: TwitterRestClient) extends Client
-  case class Web() extends Client
 
   def receive = {
     case Recommendation(recom, MyTweet(mention, user)) => {
@@ -28,7 +24,7 @@ class OutputManager extends Actor {
         status=s"@${user} Encontre: \n${recom}",
         in_reply_to_status_id=Option(mention))
     }
-    case Recommendation(recom, respondTo: Web) => {
+    case Recommendation(recom, respondTo: WebClient) => {
       printer ! recom
     }
     case _ => {

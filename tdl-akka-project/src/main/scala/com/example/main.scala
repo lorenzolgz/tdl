@@ -29,7 +29,7 @@ object RecomendationService {
 
     twitterClient ! ListenToMentions
 
-    var server = new WebServer(dataFormatter, movieFinder, recommender)
+    var server = new WebServer(entryManager)
     server.startServer("localhost", 8080)
   }
 

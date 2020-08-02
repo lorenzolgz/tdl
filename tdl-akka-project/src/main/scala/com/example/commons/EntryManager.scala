@@ -4,17 +4,18 @@ import akka.actor.{Actor, ActorRef}
 
 import com.danielasfregola.twitter4s.entities.{Tweet}
 
-case class RecommendationRequest(request: String, respondTo: MyTweet) extends Request
-case class FindMovieRequest(request: String, respondTo: MyTweet) extends Request
+case class RecommendationRequest(request: String, respondTo: Client) extends Request
+case class FindMovieRequest(request: String, respondTo: Client) extends Request
 
 class EntryManager(val RecomendationService: ActorRef, val SearchService: ActorRef) extends Actor {
-
-  case class Twitter(user: String) extends Client
-  case class Web() extends Client
 
   def receive = {
     case RecommendationRequest(req, MyTweet(mention,user)) => {
       SearchService ! FindMovieRequest(req, new MyTweet(mention,user))
+    }
+
+    case RecommendationRequest(req, client: WebClient) => {
+      SearchService ! FindMovieRequest(req, client)
     }
 
     case _ => {
