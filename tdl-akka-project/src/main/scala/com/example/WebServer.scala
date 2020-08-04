@@ -11,8 +11,10 @@ import scala.util.{Failure, Success}
 
 import ExecutionContext.Implicits.global
 
- 
-class WebServer(val formatter: ActorRef, val finder: ActorRef, val recommender: ActorRef) extends HttpApp {
+import commons.{EntryManager, RecommendationRequest, WebClient}
+
+
+class WebServer(val entryManager: ActorRef) extends HttpApp {
 
   implicit val timeout: Timeout = 5.seconds
 
@@ -20,13 +22,11 @@ class WebServer(val formatter: ActorRef, val finder: ActorRef, val recommender: 
     concat(
       pathSingleSlash {
         get {
-          val movieResults: Future[String] = ask(finder, "2048").mapTo[String] 
+          val movieResults: Future[String] = ask(entryManager, RecommendationRequest("dog", WebClient(null))).mapTo[String]
 
-          // FIXME: esto por algún motivo nunca llega y se termina enviando a deadLetters, el buzón default para los mensajes
-          //        entre actores que nunca llegaron
           onComplete(movieResults) {
             case Success(value) => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, value))
-            case Failure(res) => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1> Ocurrió un error <h1>"))
+            case Failure(res) => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "Ocurrió un error"))
           }
         }
       },

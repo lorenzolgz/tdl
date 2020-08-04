@@ -1,2 +1,4 @@
-*.class
-*.conf
+tdl-akka-project/project
+tdl-akka-project/target
+.idea
+.metals
