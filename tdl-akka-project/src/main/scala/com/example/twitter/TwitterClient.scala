@@ -28,13 +28,13 @@ class TwitterClient(val entryManager: ActorRef) extends Actor {
             println(s"Hashtag: ${hashtag}")
 
             var user = tweet.user.get
-            println(s"Repondiendo la mencion (${tweet.id}) del usuario ${user.screen_name}")
+            println(s"Respondiendo la mencion (${tweet.id}) del usuario ${user.screen_name}")
             entryManager ! new RecommendationRequest(hashtag, MyTweet(tweet.id, user.screen_name.toString()))
           }
 
           case _ => println("Se recibió otra cosa")
         }
-        streamingClient.filterStatuses(tracks=Seq("MoviesRecommen1"))(printTweetText)
+        streamingClient.filterStatuses(tracks=Seq("buscamepelis"))(printTweetText)
 
       }
       case _ => println("No recibi nada")

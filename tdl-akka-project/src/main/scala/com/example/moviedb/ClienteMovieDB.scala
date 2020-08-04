@@ -62,7 +62,7 @@ class MovieDataFormatter() extends Actor {
       }
       
       movies = movies.distinct
-      movies.sortWith((s: Movie, t: Movie) => s.vote_average <= t.vote_average)
+      movies.sortWith((s: Movie, t: Movie) => s.vote_average >= t.vote_average)
 
       i = 0
       while(i <= 2 && i <= movies.length) {
