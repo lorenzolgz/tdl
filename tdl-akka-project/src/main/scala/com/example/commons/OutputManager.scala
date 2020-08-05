@@ -1,10 +1,11 @@
 package commons
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
-import akka.stream.ActorMaterializer
 
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.{Tweet}
+
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity }
 
 case class Recommendation(recom: String, respondTo: Client)
 
@@ -25,7 +26,24 @@ class OutputManager extends Actor {
         in_reply_to_status_id=Option(mention))
     }
     case Recommendation(recom, respondTo: WebClient) => {
-      printer ! recom
+      var template = """
+      <head>
+        <link rel="stylesheet" href="resources/styles.css">
+      </head>
+      <h1 class="titulo">
+        <img src="resources/movie.png" style="width: 55; height: 55">
+        Recomendador de películas 
+        <img src="resources/movie.png" style="width: 55; height: 55"> 
+      </h1>
+
+      <h2> Estas son las películas que te recomendamos: </h2><br><br>"""
+
+      template = template + "<h1>"
+      template = template + recom.replace("\n", "</br>")
+      template = template + "</h1>"
+
+      respondTo.complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, template))
+      context.stop(self)
     }
     case _ => {
       println("OutputManager recibió algo inválido")
