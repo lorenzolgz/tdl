@@ -109,35 +109,8 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
         .flatMap(ask(formatter, _).mapTo[String])
         .map(finalResult => Recommendation(finalResult, respondTo))
         .pipeTo(outputManager)
+        println(s"Enviando al output")
       //Fin prueba
-
-    /*  responseFuture.onComplete {
-
-        case Success(res) => {
-          println(s"Response for key=${request} with code=${res.status.intValue()}")
-
-          val stringFuture: Future[String] = Unmarshal(res).to[String]
-
-          val formattedMovies: Future[String] = ask(formatter, Await.result(stringFuture, 5 seconds)).mapTo[String]
-
-          formattedMovies onComplete {
-            case Success(value) => {
-              //println(s"recibido, enviando $value")
-              //Future {
-              //  value
-              //}.pipeTo(sender)
-
-              //Se lo envío al outputManager
-              outputManager ! Recommendation(value,respondTo)
-
-            }
-            case Failure(t) => println(s"Ocurrio un error esperando respuesta de $formatter")
-
-          }
-
-        }
-        case Failure(_)   => sys.error("Ocurrio un error al esperar la respuesta de la API")
-      } */
     }
     case _ => println(s"$self recibio una query que no es del tipo string<")
   }
