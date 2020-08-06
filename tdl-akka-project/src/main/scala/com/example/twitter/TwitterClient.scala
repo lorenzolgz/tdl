@@ -34,7 +34,7 @@ class TwitterClient(val entryManager: ActorRef) extends Actor {
 
           case _ => println("Se recibió otra cosa")
         }
-        streamingClient.filterStatuses(tracks=Seq("MoviesRecommen1"))(printTweetText)
+        streamingClient.filterStatuses(tracks=Seq("buscamepelis"))(printTweetText)
 
       }
       case _ => println("No recibi nada")

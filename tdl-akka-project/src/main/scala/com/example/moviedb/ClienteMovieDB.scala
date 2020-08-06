@@ -103,7 +103,15 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
       val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = "/3/search/movie", queryString = queryString)
       val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = movieDBUri))
 
-      responseFuture.onComplete {
+      //Prueba
+      responseFuture
+        .flatMap(Unmarshal(_).to[String])
+        .flatMap(ask(formatter, _).mapTo[String])
+        .map(finalResult => Recommendation(finalResult, respondTo))
+        .pipeTo(outputManager)
+      //Fin prueba
+
+    /*  responseFuture.onComplete {
 
         case Success(res) => {
           println(s"Response for key=${request} with code=${res.status.intValue()}")
@@ -129,7 +137,7 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
 
         }
         case Failure(_)   => sys.error("Ocurrio un error al esperar la respuesta de la API")
-      }
+      } */
     }
     case _ => println(s"$self recibio una query que no es del tipo string<")
   }
