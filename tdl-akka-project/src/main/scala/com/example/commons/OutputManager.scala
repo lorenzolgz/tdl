@@ -12,7 +12,6 @@ case class Recommendation(recom: String, respondTo: Client)
 class OutputManager extends Actor {
 
   val system = ActorSystem()
-  val printer = system.actorOf(Props(classOf[Printer]), "printer")
 
   val restClient = TwitterRestClient()
 
@@ -32,8 +31,8 @@ class OutputManager extends Actor {
       </head>
       <h1 class="titulo">
         <img src="resources/movie.png" style="width: 55; height: 55">
-        Recomendador de películas 
-        <img src="resources/movie.png" style="width: 55; height: 55"> 
+        Recomendador de películas
+        <img src="resources/movie.png" style="width: 55; height: 55">
       </h1>
 
       <h2> Estas son las películas que te recomendamos: </h2><br><br>"""
@@ -49,14 +48,4 @@ class OutputManager extends Actor {
       println("OutputManager recibió algo inválido")
     }
   }
-}
-
-class Printer extends Actor {
-
-  def receive = {
-    case film:String => {
-      println(s"Esta es la película que te recomendamos: ${film}")
-    }
-  }
-
 }

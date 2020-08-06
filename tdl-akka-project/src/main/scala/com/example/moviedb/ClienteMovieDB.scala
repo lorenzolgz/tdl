@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
 import scala.util.Random
-import scala.collection.mutable.ListBuffer  
+import scala.collection.mutable.ListBuffer
 
 
 /*
@@ -60,7 +60,7 @@ class MovieDataFormatter() extends Actor {
         movies += page.results(random.nextInt(page.results.length))
         i+=1;
       }
-      
+
       movies = movies.distinct
       movies = movies.sortWith((s: Movie, t: Movie) => s.vote_average >= t.vote_average)
 
@@ -90,15 +90,14 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
       val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = "/3/search/movie", queryString = queryString)
       val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = movieDBUri))
 
-      //Prueba
       responseFuture
         .flatMap(Unmarshal(_).to[String])
         .flatMap(ask(formatter, _).mapTo[String])
         .map(finalResult => Recommendation(finalResult, respondTo))
         .pipeTo(outputManager)
         println(s"Enviando al output")
-      //Fin prueba
     }
+    
     case _ => println(s"$self recibio una query que no es del tipo string<")
   }
 
