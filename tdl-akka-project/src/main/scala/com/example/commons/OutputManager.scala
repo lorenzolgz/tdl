@@ -22,7 +22,7 @@ class OutputManager extends Actor {
       println(mention)
       println(user)
       restClient.createTweet(
-        status=s"@${user} Encontre: \n${recom}",
+        status=s"@${user} Te recomiendo: \n${recom}",
         in_reply_to_status_id=Option(mention))
     }
     case Recommendation(recom, respondTo: WebClient) => {

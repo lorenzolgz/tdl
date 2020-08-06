@@ -18,6 +18,9 @@ import ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
+import scala.util.Random
+import scala.collection.mutable.ListBuffer  
+
 
 /*
  *  Para parsear un JSON en scala la forma más fácil de hacerlo es
@@ -47,37 +50,25 @@ class MovieDataFormatter() extends Actor {
       var page = movieData.parseJson.convertTo[Page[Movie]]
 
       var r: String = ""
-      r = r + s"Página: ${page.page}\n"
-      r = r + "--------------------------------------\n"
-
-      for(movie <- page.results) {
-        r = r + s"--- ID: ${movie.id} | Título: ${movie.title} | Puntuación: ${movie.vote_average}\n"
-        r = r + "--------------------------------------\n"
-      }
-
-      sender ! r
-
-    }
-  }
-}
-
-class SimpleMovieDataFormatter() extends Actor {
-  import MovieDBProtocol._
-  implicit val timeout: Timeout = 5.seconds
-
-  def receive = {
-    case movieData: String => {
-
-      var page = movieData.parseJson.convertTo[Page[Movie]]
-
-      var r: String = ""
-      var it = 0
       val emoji = "\uD83C\uDFAC"
+      var i = 0
+      val random = new Random
 
-      while(it <= 2) {
-        var movie = page.results(it)
-        r = r + s"${emoji} \'${movie.title}\' | Score: ${movie.vote_average}\n"
-        it += 1
+      var movies = new ListBuffer[Movie]()
+
+      while (i <= 30 && i <= page.results.length) {
+        movies += page.results(random.nextInt(page.results.length))
+        i+=1;
+      }
+      
+      movies = movies.distinct
+      movies = movies.sortWith((s: Movie, t: Movie) => s.vote_average >= t.vote_average)
+
+      i = 0
+      while(i <= 2 && i <= movies.length) {
+        var movie = movies(i)
+        r = r + s"${emoji} \'${movie.title}\' | Valoración: ${movie.vote_average}\n"
+        i += 1
       }
 
       sender ! r
@@ -85,10 +76,6 @@ class SimpleMovieDataFormatter() extends Actor {
     }
   }
 }
-
-// TODO: Refactorizar a un RequestsDispatcher que maneje los requests a la API, estos actores solo deberían
-//       setear el endpoint y el método junto con los parámetros
-
 
 class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef) extends Actor {
   var outputManager = system.actorOf(Props(classOf[OutputManager]), "outputManager")
@@ -115,36 +102,4 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
     case _ => println(s"$self recibio una query que no es del tipo string<")
   }
 
-}
-
-
-class MovieRecommender(system: ActorSystem, val apiKey: String, var formatter: ActorRef) extends Actor {
-
-  def receive = {
-    case movieID:String => {
-
-      implicit val actSystem = system; // Para el Http()
-
-      val path = "/3/movie/%s/recommendations".format(movieID)
-
-      val queryString = Some(s"api_key=${apiKey}&language=es-LA&page=1")
-      val movieDBUri = Uri.from(scheme = "http", host = "api.themoviedb.org", path = path, queryString = queryString)
-      val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = movieDBUri))
-
-      responseFuture.onComplete {
-
-        case Success(res) => {
-          println(s"Response for endpoint=${path} with code=${res.status.intValue()}")
-
-          val stringFuture: Future[String] = Unmarshal(res).to[String]
-
-          //println(s"Recommendations for ID: ${movieID}")
-          formatter ! Await.result(stringFuture, 5 seconds)
-
-        }
-        case Failure(_)   => sys.error("Ocurrio un error al esperar la respuesta de la API")
-      }
-    }
-    case _ => println("Buscador recibio una query que no es del tipo string<")
-  }
 }
