@@ -22,15 +22,7 @@ import scala.util.Random
 import scala.collection.mutable.ListBuffer
 
 
-/*
- *  Para parsear un JSON en scala la forma más fácil de hacerlo es
- *  armar case clases que le peguen a cada campo (no hace falta utilizarlos todos)
- *  en este caso creamos uno para la página en sí (que contiene el número y una lista
- *  de películas); y otro para la película (que contiene el título, autor, etc.)
- *  Además hay que crear un protocolo de unmarshalling para poder utilizar estas
- *  cases clases en este caso es MovieDBProtocol
- */
-
+// Case clases para parsear la respuesta de MovieDB (JSON)
 
 case class Movie(title: String, vote_average: Int, id: Int, overview: String)
 case class Page[Movie](page: Int, results: List[Movie])
@@ -40,50 +32,60 @@ object MovieDBProtocol extends DefaultJsonProtocol {
   implicit def pageFormat[Movie: JsonFormat] = jsonFormat2(Page.apply[Movie])
 }
 
+
 class MovieDataFormatter() extends Actor {
   import MovieDBProtocol._
-  implicit val timeout: Timeout = 5.seconds
+
+  def extractRandomMovies(movies: List[Movie]): ListBuffer[Movie] = {
+    val random = new Random
+    var randomizedMovies = new ListBuffer[Movie]()
+    var i = 0
+
+    while(i <= 30 && i <= movies.length) {
+      randomizedMovies += movies(random.nextInt(movies.length))
+      i+=1;
+    }
+
+    randomizedMovies = randomizedMovies.distinct
+    randomizedMovies = randomizedMovies.sortWith((s: Movie, t: Movie) => s.vote_average >= t.vote_average)
+
+    randomizedMovies
+  }
 
   def receive = {
     case movieData: String => {
 
       var page = movieData.parseJson.convertTo[Page[Movie]]
-
-      var r: String = ""
       val emoji = "\uD83C\uDFAC"
-      var i = 0
-      val random = new Random
 
-      var movies = new ListBuffer[Movie]()
-
-      while (i <= 30 && i <= page.results.length) {
-        movies += page.results(random.nextInt(page.results.length))
-        i+=1;
+      page.results match {
+        case List() =>  sender ! "No se encontraron películas con ese título"
+        case _ => {
+          var movies = this.extractRandomMovies(page.results)
+   
+          var i = 0
+          var r: String = ""
+          while(i <= 2 && i <= movies.length) {
+              r = r + s"${emoji} \'${movies(i).title}\' | Valoración: ${movies(i).vote_average}\n"
+              i += 1
+          }
+   
+          sender ! r
+        }
       }
-
-      movies = movies.distinct
-      movies = movies.sortWith((s: Movie, t: Movie) => s.vote_average >= t.vote_average)
-
-      i = 0
-      while(i <= 2 && i <= movies.length) {
-        var movie = movies(i)
-        r = r + s"${emoji} \'${movie.title}\' | Valoración: ${movie.vote_average}\n"
-        i += 1
-      }
-
-      sender ! r
-
     }
   }
 }
 
+
 class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorRef) extends Actor {
+
   var outputManager = system.actorOf(Props(classOf[OutputManager]), "outputManager")
 
   def receive = {
     case FindMovieRequest(request: String, respondTo: Client) => {
 
-      implicit val actSystem = system; // Para el Http()
+      implicit val actSystem = system; 
       implicit val timeout: Timeout = 5.seconds
 
       val queryString = Some(s"api_key=${apiKey}&language=es-LA&page=1&include_adult=false&query=${request}")
@@ -95,10 +97,8 @@ class MovieFinder(system: ActorSystem, val apiKey: String, var formatter: ActorR
         .flatMap(ask(formatter, _).mapTo[String])
         .map(finalResult => Recommendation(finalResult, respondTo))
         .pipeTo(outputManager)
-        println(s"Enviando al output")
     }
     
     case _ => println(s"$self recibio una query que no es del tipo string<")
   }
-
 }
