@@ -1,6 +1,6 @@
 # Grupo de Teoría del Lenguaje - SCALA-2
 
-La idea es implementar un sistema de recomendación on demand por twitter. Vamos a tener alguna instancia de un servidor ... #TODO
+Implementa un bot de twitter en Scala que reponde a menciones con recomendaciones de películas en base a palabras claves. Además implementa un servidor web para obtener el mismo resultado desde un browser
 
 ---
 
@@ -38,13 +38,13 @@ Una vez en la consola de sbt (se ve un ">") escribir reStart
 >reStart
 ```
 
-### Hacer una request
+### Modo de uso
 
 ***TWITTER***
-- Mencionar a @MovieRecommen1 en un tuit con al menos un hashtag para que haga la busqueda, como resultado se verá una respuesta de 3 películas que han matcheado.
+- Mencionar a @recomendamepelis en un tweet con al menos un hashtag para que haga la busqueda, el bot entonces responderá con 3 películas que recomiende
 
 ```
-EJEMPLO: "@MovieRecommen1 Recomendame pelis de #zombies"
+EJEMPLO: "@buscamepelis Recomendame pelis de #zombies"
 ```
 
 ```
