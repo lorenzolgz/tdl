@@ -42,7 +42,6 @@ class OutputManager extends Actor {
       template = template + "</h1>"
 
       respondTo.complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, template))
-      context.stop(self)
     }
     case _ => {
       println("OutputManager recibió algo inválido")
